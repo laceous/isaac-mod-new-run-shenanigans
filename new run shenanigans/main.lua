@@ -5,6 +5,7 @@ if REPENTOGON then
   mod.controllerOverride = -1
   mod.notification = nil
   mod.playerTypes = {}
+  mod.difficulties = {}
   mod.challenges = {}
   
   mod.challengeUnlocks = {
@@ -48,6 +49,7 @@ if REPENTOGON then
     mod:RemoveCallback(ModCallbacks.MC_MAIN_MENU_RENDER, mod.onRender)
     mod:RemoveCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
     mod:fillPlayerTypes()
+    mod:fillDifficulties()
     mod:fillChallenges()
     mod:setupImGui()
   end
@@ -60,11 +62,6 @@ if REPENTOGON then
   function mod:onPlayerInit(player)
     if mod.controllerOverride > -1 then
       player:SetControllerIndex(mod.controllerOverride)
-      
-      local playerType = player:GetPlayerType()
-      if not (playerType == PlayerType.PLAYER_THEFORGOTTEN or playerType == PlayerType.PLAYER_THESOUL) then
-        mod.controllerOverride = -1
-      end
     end
     
     if mod.notification then
@@ -76,7 +73,10 @@ if REPENTOGON then
   -- required for: the forgotten
   function mod:onPlayerUpdate(player)
     if mod.controllerOverride > -1 then
-      player:SetControllerIndex(mod.controllerOverride)
+      if player.ControllerIndex ~= mod.controllerOverride then
+        player:SetControllerIndex(mod.controllerOverride)
+      end
+      
       mod.controllerOverride = -1
     end
   end
@@ -328,6 +328,14 @@ if REPENTOGON then
     end
   end
   
+  -- community remix mod has a DifficultyManager
+  function mod:fillDifficulties()
+    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_NORMAL  , name = 'Normal'  , enabled = true })
+    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_HARD    , name = 'Hard'    , enabled = true })
+    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_GREED   , name = 'Greed'   , enabled = true })
+    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_GREEDIER, name = 'Greedier', enabled = true })
+  end
+  
   function mod:fillChallenges()
     for i = 1, Challenge.NUM_CHALLENGES - 1 do
       local data = mod:getXmlChallengeData(i)
@@ -398,13 +406,14 @@ if REPENTOGON then
     ImGui.AddTabBar('shenanigansWindowNewRun', 'shenanigansTabBarNewRun')
     ImGui.AddTab('shenanigansTabBarNewRun', 'shenanigansTabNewRun', 'New Run')
     ImGui.AddTab('shenanigansTabBarNewRun', 'shenanigansTabNewRunPlayerTypes', 'Player Types')
+    ImGui.AddTab('shenanigansTabBarNewRun', 'shenanigansTabNewRunDifficulties', 'Difficulties')
     ImGui.AddTab('shenanigansTabBarNewRun', 'shenanigansTabNewRunChallenges', 'Challenges')
     
     local difficulty = Difficulty.DIFFICULTY_NORMAL
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Difficulty')
     ImGui.AddRadioButtons('shenanigansTabNewRun', 'shenanigansRadNewRunDifficulty', function(i)
       difficulty = i
-    end, { 'Normal', 'Hard', 'Greed', 'Greedier', 'Challenge' }, difficulty, true)
+    end, { 'Normal', 'Hard', 'Greed', 'Greedier', 'Random', 'Challenge' }, difficulty, true)
     
     local playerTypes = {
       regular = true,
@@ -466,9 +475,9 @@ if REPENTOGON then
       local p = {}
       local c = { id = Challenge.CHALLENGE_NULL }
       local d = difficulty
-      local notification
+      local notification = ''
       
-      if d > Difficulty.DIFFICULTY_GREEDIER then -- challenge
+      if d == 5 then -- challenge
         local tempChallenges = {}
         for _, v in ipairs(mod.challenges) do
           if v.enabled and mod:isChallengeUnlocked(v.achievements) then
@@ -487,14 +496,32 @@ if REPENTOGON then
         p.id = c.playerType
         d = c.difficulty
         
-        notification = 'Challenge: ' .. c.id .. '.' .. c.name
+        notification = 'Challenge: ' .. c.name
       else
-        if d == Difficulty.DIFFICULTY_GREEDIER then
-          local gameData = Isaac.GetPersistentGameData()
-          if not gameData:Unlocked(Achievement.GREEDIER) then
-            ImGui.PushNotification('Greedier mode has not been unlocked.', ImGuiNotificationType.ERROR, 5000)
+        local gameData = Isaac.GetPersistentGameData()
+        local greedierModeUnlocked = gameData:Unlocked(Achievement.GREEDIER)
+        
+        if d == Difficulty.DIFFICULTY_GREEDIER and not greedierModeUnlocked then
+          ImGui.PushNotification('Greedier mode has not been unlocked.', ImGuiNotificationType.ERROR, 5000)
+          return
+        end
+        
+        if d == 4 then -- random
+          local tempDifficulties = {}
+          for _, v in ipairs(mod.difficulties) do
+            if v.enabled and (v.id ~= Difficulty.DIFFICULTY_GREEDIER or (v.id == Difficulty.DIFFICULTY_GREEDIER and greedierModeUnlocked)) then
+              table.insert(tempDifficulties, v)
+            end
+          end
+          
+          local tempD = tempDifficulties[rng:RandomInt(#tempDifficulties) + 1]
+          if not tempD then
+            ImGui.PushNotification('No unlocked difficulties matched the criteria.', ImGuiNotificationType.ERROR, 5000)
             return
           end
+          
+          d = tempD.id
+          notification = 'Difficulty: ' .. tempD.name .. '\n'
         end
         
         local tempPlayerTypes = {}
@@ -512,11 +539,11 @@ if REPENTOGON then
         
         p = tempPlayerTypes[rng:RandomInt(#tempPlayerTypes) + 1]
         if not p then
-          ImGui.PushNotification('No unlocked player types matched the criteria.', ImGuiNotificationType.ERROR, 5000)
+          ImGui.PushNotification(notification .. 'No unlocked player types matched the criteria.', ImGuiNotificationType.ERROR, 5000)
           return
         end
         
-        notification = 'Player type: ' .. p.id .. '.' .. p.name
+        notification = notification .. 'Player Type: ' .. p.name
         if p.tainted then
           notification = notification .. ' (Tainted)'
         end
@@ -528,19 +555,26 @@ if REPENTOGON then
       ImGui.Hide()
     end, false)
     
-    ImGui.AddButton('shenanigansTabNewRunPlayerTypes', 'shenanigansBtnNewRunPlayerTypesSelectAll', 'Select all', function()
-      for _, v in ipairs(mod.playerTypes) do
-        v.enabled = true
-        ImGui.UpdateData('shenanigansChkNewRunPlayerTypeEnabled' .. v.id, ImGuiData.Value, true)
-      end
-    end, false)
-    ImGui.AddElement('shenanigansTabNewRunPlayerTypes', '', ImGuiElement.SameLine, '')
-    ImGui.AddButton('shenanigansTabNewRunPlayerTypes', 'shenanigansBtnNewRunPlayerTypesDeselectAll', 'Deselect all', function()
-      for _, v in ipairs(mod.playerTypes) do
-        v.enabled = false
-        ImGui.UpdateData('shenanigansChkNewRunPlayerTypeEnabled' .. v.id, ImGuiData.Value, false)
-      end
-    end, false)
+    for i, v in ipairs({
+                        { tab = 'shenanigansTabNewRunPlayerTypes' , tbl = mod.playerTypes , enabledPrefix = 'shenanigansChkNewRunPlayerTypeEnabled' },
+                        { tab = 'shenanigansTabNewRunDifficulties', tbl = mod.difficulties, enabledPrefix = 'shenanigansChkNewRunDifficultyEnabled' },
+                        { tab = 'shenanigansTabNewRunChallenges'  , tbl = mod.challenges  , enabledPrefix = 'shenanigansChkNewRunChallengeEnabled' },
+                      })
+    do
+      ImGui.AddButton(v.tab, 'shenanigansBtnNewRunSelectAll' .. i, 'Select all', function()
+        for _, w in ipairs(v.tbl) do
+          w.enabled = true
+          ImGui.UpdateData(v.enabledPrefix .. w.id, ImGuiData.Value, true)
+        end
+      end, false)
+      ImGui.AddElement(v.tab, '', ImGuiElement.SameLine, '')
+      ImGui.AddButton(v.tab, 'shenanigansBtnNewRunDeselectAll' .. i, 'Deselect all', function()
+        for _, w in ipairs(v.tbl) do
+          w.enabled = false
+          ImGui.UpdateData(v.enabledPrefix .. w.id, ImGuiData.Value, false)
+        end
+      end, false)
+    end
     
     ImGui.AddElement('shenanigansTabNewRunPlayerTypes', '', ImGuiElement.SeparatorText, 'Regular')
     for _, v in ipairs(mod.playerTypes) do
@@ -568,21 +602,14 @@ if REPENTOGON then
       end
     end
     
-    ImGui.AddButton('shenanigansTabNewRunChallenges', 'shenanigansBtnNewRunChallengesSelectAll', 'Select all', function()
-      for _, v in ipairs(mod.challenges) do
-        v.enabled = true
-        ImGui.UpdateData('shenanigansChkNewRunChallengeEnabled' .. v.id, ImGuiData.Value, true)
-      end
-    end, false)
-    ImGui.AddElement('shenanigansTabNewRunChallenges', '', ImGuiElement.SameLine, '')
-    ImGui.AddButton('shenanigansTabNewRunChallenges', 'shenanigansBtnNewRunChallengesDeselectAll', 'Deselect all', function()
-      for _, v in ipairs(mod.challenges) do
-        v.enabled = false
-        ImGui.UpdateData('shenanigansChkNewRunChallengeEnabled' .. v.id, ImGuiData.Value, false)
-      end
-    end, false)
+    ImGui.AddElement('shenanigansTabNewRunDifficulties', '', ImGuiElement.SeparatorText, 'Random')
+    for _, v in ipairs(mod.difficulties) do
+      ImGui.AddCheckbox('shenanigansTabNewRunDifficulties', 'shenanigansChkNewRunDifficultyEnabled' .. v.id, v.name, function(b)
+        v.enabled = b
+      end, v.enabled)
+    end
     
-    ImGui.AddElement('shenanigansTabNewRunChallenges', '', ImGuiElement.Separator, '')
+    ImGui.AddElement('shenanigansTabNewRunChallenges', '', ImGuiElement.SeparatorText, 'Challenge')
     for _, v in ipairs(mod.challenges) do
       local chkChallengeId = 'shenanigansChkNewRunChallengeEnabled' .. v.id
       ImGui.AddCheckbox('shenanigansTabNewRunChallenges', chkChallengeId, v.id .. '.' .. v.name, function(b)
