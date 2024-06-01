@@ -55,7 +55,9 @@ if REPENTOGON then
     mod:setupImGui()
   end
   
-  function mod:onGameExit()
+  -- reset variables here rather than in MC_PRE_GAME_EXIT
+  -- so we don't wipe out the controller override when holding R to restart
+  function mod:onMainMenuRender()
     mod.controllerOverride = -1
     mod.notification = nil
   end
@@ -674,6 +676,6 @@ if REPENTOGON then
   
   mod:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, mod.onRender)
   mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
-  mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.onGameExit)
+  mod:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, mod.onMainMenuRender)
   mod:AddPriorityCallback(ModCallbacks.MC_POST_PLAYER_INIT, CallbackPriority.IMPORTANT, mod.onPlayerInit, PlayerVariant.PLAYER)
 end
