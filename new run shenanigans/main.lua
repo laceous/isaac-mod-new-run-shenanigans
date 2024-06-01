@@ -429,6 +429,46 @@ if REPENTOGON then
       incomplete = b
     end, incomplete)
     
+    local seed = ''
+    local txtSeedId = 'shenanigansTxtNewRunSeed'
+    ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Seed')
+    ImGui.AddInputText('shenanigansTabNewRun', txtSeedId, '', nil, '', 'Random...')
+    ImGui.AddCallback(txtSeedId, ImGuiCallback.DeactivatedAfterEdit, function(s)
+      s = string.gsub(s, '%s+', '') -- remove whitespace
+      s = string.upper(s)           -- upper case
+      
+      if string.len(s) > 8 then
+        s = string.sub(s, 1, 8)
+      end
+      
+      local map = { ['I'] = '1', ['O'] = '0', ['U'] = 'V' }
+      local temp = ''
+      for i = 1, string.len(s) do
+        local c = string.sub(s, i, i)
+        local c2 = map[c]
+        if c2 then
+          c = c2
+        end
+        temp = temp .. c
+      end
+      s = temp
+      
+      if string.len(s) > 4 then
+        s = string.sub(s, 1, 4) .. ' ' .. string.sub(s, 5, string.len(s)) -- insert space
+      end
+      
+      if s == '' then
+        ImGui.UpdateData(txtSeedId, ImGuiData.Label, '')
+      elseif Seeds.IsStringValidSeed(s) then
+        ImGui.UpdateData(txtSeedId, ImGuiData.Label, 'Valid')
+      else
+        ImGui.UpdateData(txtSeedId, ImGuiData.Label, 'Not valid')
+      end
+      
+      seed = s
+      ImGui.UpdateData(txtSeedId, ImGuiData.Value, s)
+    end)
+    
     local controller = 0
     local controllers = { 'Default' }
     for i = 0, 4 do
@@ -550,7 +590,17 @@ if REPENTOGON then
         end
       end
       
-      Isaac.StartNewGame(p.id, c.id, d, nil)
+      local s = nil
+      if seed ~= '' then
+        if Seeds.IsStringValidSeed(seed) then
+          s = Seeds.String2Seed(seed)
+        else
+          ImGui.PushNotification('The seed is not valid.', ImGuiNotificationType.ERROR, 5000)
+          return
+        end
+      end
+      
+      Isaac.StartNewGame(p.id, c.id, d, s)
       mod.controllerOverride = controller - 1
       mod.notification = notification
       ImGui.Hide()
