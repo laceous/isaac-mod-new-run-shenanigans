@@ -1,4 +1,5 @@
 local mod = RegisterMod('New Run Shenanigans', 1)
+local game = Game()
 
 if REPENTOGON then
   mod.rngShiftIdx = 35
@@ -60,24 +61,13 @@ if REPENTOGON then
   end
   
   function mod:onPlayerInit(player)
-    if mod.controllerOverride > -1 then
+    if game:GetFrameCount() <= 0 and mod.controllerOverride > -1 then
       player:SetControllerIndex(mod.controllerOverride)
     end
     
     if mod.notification then
       ImGui.PushNotification(mod.notification, ImGuiNotificationType.INFO, 5000)
       mod.notification = nil
-    end
-  end
-  
-  -- required for: the forgotten
-  function mod:onPlayerUpdate(player)
-    if mod.controllerOverride > -1 then
-      if player.ControllerIndex ~= mod.controllerOverride then
-        player:SetControllerIndex(mod.controllerOverride)
-      end
-      
-      mod.controllerOverride = -1
     end
   end
   
@@ -636,5 +626,4 @@ if REPENTOGON then
   mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
   mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.onGameExit)
   mod:AddPriorityCallback(ModCallbacks.MC_POST_PLAYER_INIT, CallbackPriority.IMPORTANT, mod.onPlayerInit, PlayerVariant.PLAYER)
-  mod:AddPriorityCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, CallbackPriority.IMPORTANT, mod.onPlayerUpdate, PlayerVariant.PLAYER)
 end
