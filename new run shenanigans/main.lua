@@ -510,7 +510,18 @@ if REPENTOGON then
           local tempDifficulties = {}
           for _, v in ipairs(mod.difficulties) do
             if v.enabled and (v.id ~= Difficulty.DIFFICULTY_GREEDIER or (v.id == Difficulty.DIFFICULTY_GREEDIER and greedierModeUnlocked)) then
-              table.insert(tempDifficulties, v)
+              if not incomplete then
+                table.insert(tempDifficulties, v)
+              else
+                for _, w in ipairs(mod.playerTypes) do
+                  if w.enabled and ((playerTypes.regular and not w.tainted) or (playerTypes.tainted and w.tainted)) and mod:isPlayerTypeUnlocked(w.achievement) then
+                    if mod:getNumCompletionMarksToGo(w.id, v.id) > 0 then
+                      table.insert(tempDifficulties, v)
+                      break
+                    end
+                  end
+                end
+              end
             end
           end
           
