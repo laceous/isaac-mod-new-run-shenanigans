@@ -8,6 +8,8 @@ if REPENTOGON then
   mod.playerTypes = {}
   mod.difficulties = {}
   mod.challenges = {}
+  mod.controllers = {}
+  mod.controllersMap = {}
   
   mod.challengeUnlocks = {
     [Challenge.CHALLENGE_DARKNESS_FALLS]      = Achievement.CHALLENGE_4_DARKNESS_FALLS,
@@ -362,6 +364,22 @@ if REPENTOGON then
     end
   end
   
+  function mod:fillControllers()
+    mod.controllers = { 'Default' }
+    mod.controllersMap = { -1 }
+    
+    for i = 0, 10000 do
+      local name = Input.GetDeviceNameByIdx(i)
+      if name == nil and i == 0 then
+        name = 'Keyboard'
+      end
+      if name then
+        table.insert(mod.controllers, i .. ' - ' .. name)
+        table.insert(mod.controllersMap, i)
+      end
+    end
+  end
+  
   function mod:isPlayerTypeUnlocked(achievement)
     if achievement > 0 then
       local gameData = Isaac.GetPersistentGameData()
@@ -471,23 +489,22 @@ if REPENTOGON then
       ImGui.UpdateData(txtSeedId, ImGuiData.Value, s)
     end)
     
+    mod:fillControllers()
     local controller = 0
-    local controllers = { 'Default' }
-    for i = 0, 4 do
-      local name = Input.GetDeviceNameByIdx(i)
-      if name == nil then
-        if i == 0 then
-          name = 'Keyboard'
-        else
-          name = 'Controller'
-        end
-      end
-      table.insert(controllers, i .. ' - ' .. name)
-    end
+    local cmbControllerId = 'shenanigansCmbNewRunController'
+    local btnControllerId = 'shenanigansBtnNewRunController'
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Controller')
-    ImGui.AddCombobox('shenanigansTabNewRun', 'shenanigansCmbNewRunController', '', function(i)
+    ImGui.AddCombobox('shenanigansTabNewRun', cmbControllerId, '', function(i)
       controller = i
-    end, controllers, controller, false)
+    end, mod.controllers, controller, false)
+    ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SameLine, '')
+    ImGui.AddButton('shenanigansTabNewRun', btnControllerId, '\u{f021}', function()
+      mod:fillControllers()
+      controller = 0
+      ImGui.UpdateData(cmbControllerId, ImGuiData.ListValues, mod.controllers)
+      ImGui.UpdateData(cmbControllerId, ImGuiData.Value, controller)
+    end, false)
+    ImGui.SetTooltip(btnControllerId, 'Refresh (if you swap controllers)')
     
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Go')
     ImGui.AddButton('shenanigansTabNewRun', 'shenanigansBtnNewRun', 'Start New Run', function()
@@ -603,7 +620,7 @@ if REPENTOGON then
       end
       
       Isaac.StartNewGame(p.id, c.id, d, s)
-      mod.controllerOverride = controller - 1
+      mod.controllerOverride = mod.controllersMap[controller + 1] or -1
       mod.notification = notification
       ImGui.Hide()
     end, false)
