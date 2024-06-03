@@ -16,7 +16,7 @@
 Note: challenges have a set player type and difficulty assigned to them.
 
 When you press tilde to open the menu, the game may put you into keyboard mode. There's a controller option you can set if you're trying to play with a controller.</description>
-    <version>1.6</version>
+    <version>1.7</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Player Characters"/>

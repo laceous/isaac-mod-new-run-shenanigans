@@ -436,8 +436,8 @@ if REPENTOGON then
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Seed')
     ImGui.AddInputText('shenanigansTabNewRun', txtSeedId, '', nil, '', 'Random...')
     ImGui.AddCallback(txtSeedId, ImGuiCallback.DeactivatedAfterEdit, function(s)
-      s = string.gsub(s, '%s+', '') -- remove whitespace
-      s = string.upper(s)           -- upper case
+      s = string.gsub(s, '%W', '') -- remove any non-alphanumeric characters
+      s = string.upper(s)          -- upper case
       
       if string.len(s) > 8 then
         s = string.sub(s, 1, 8)
