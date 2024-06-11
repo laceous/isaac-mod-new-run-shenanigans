@@ -11,14 +11,15 @@
     [*]Player types, difficulties, and challenges must be unlocked to be eligible for the randomization
     [*]You can disqualify player types, difficulties, or challenges from their respective tabs by deselecting them
     [*]You can also limit to player types with missing completion marks, or challenges that haven't been completed
+    [*]Enter a seed if you want to play a seeded run
 [/list]
 
-Note: challenges have a set player type and difficulty assigned to them.
+Note: Challenges have a set player type and difficulty assigned to them, and are not allowed to be seeded.
 
 Modded player types and challenges are supported as long as they're not hidden.
 
 When you press tilde to open the menu, the game may put you into keyboard mode. There's a controller option you can set if you're trying to play with a controller.</description>
-    <version>1.9</version>
+    <version>1.10</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Player Characters"/>

@@ -610,7 +610,7 @@ if REPENTOGON then
       end
       
       local s = nil
-      if seed ~= '' then
+      if seed ~= '' and c.id == Challenge.CHALLENGE_NULL then
         if Seeds.IsStringValidSeed(seed) then
           s = Seeds.String2Seed(seed)
         else
