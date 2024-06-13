@@ -5,6 +5,7 @@ if REPENTOGON then
   mod.rngShiftIdx = 35
   mod.controllerOverride = -1
   mod.notification = nil
+  mod.seed = nil
   mod.playerTypes = {}
   mod.difficulties = {}
   mod.challenges = {}
@@ -62,11 +63,19 @@ if REPENTOGON then
   function mod:onMainMenuRender()
     mod.controllerOverride = -1
     mod.notification = nil
+    mod.seed = nil
   end
   
   function mod:onPlayerInit(player)
     if game:GetFrameCount() <= 0 and mod.controllerOverride > -1 then
       player:SetControllerIndex(mod.controllerOverride)
+    end
+    
+    if mod.seed then
+      -- lock in the seed, and disable achievements
+      -- EDEN_TOKENS/STREAK_COUNTER/EDENS_BLESSINGS_NEXT_RUN don't seem to be affected
+      Isaac.ExecuteCommand('seed ' .. Seeds.Seed2String(mod.seed))
+      mod.seed = nil
     end
     
     if mod.notification then
@@ -518,8 +527,8 @@ if REPENTOGON then
         return
       end
       
-      local rng = RNG()
-      rng:SetSeed(os.time(), mod.rngShiftIdx)
+      local gameData = Isaac.GetPersistentGameData()
+      local rng = RNG(os.time(), mod.rngShiftIdx)
       
       local p = {}
       local c = { id = Challenge.CHALLENGE_NULL }
@@ -547,8 +556,8 @@ if REPENTOGON then
         
         notification = 'Challenge: ' .. c.name
       else
-        local gameData = Isaac.GetPersistentGameData()
         local greedierModeUnlocked = gameData:Unlocked(Achievement.GREEDIER)
+        local edenTokens = gameData:GetEventCounter(EventCounter.EDEN_TOKENS)
         
         if d == Difficulty.DIFFICULTY_GREEDIER and not greedierModeUnlocked then
           ImGui.PushNotification('Greedier mode has not been unlocked.', ImGuiNotificationType.ERROR, 5000)
@@ -564,9 +573,12 @@ if REPENTOGON then
               else
                 for _, w in ipairs(mod.playerTypes) do
                   if w.enabled and ((playerTypes.regular and not w.tainted) or (playerTypes.tainted and w.tainted)) and mod:isPlayerTypeUnlocked(w.achievement) then
-                    if mod:getNumCompletionMarksToGo(w.id, v.id) > 0 then
-                      table.insert(tempDifficulties, v)
-                      break
+                    local isEden = w.id == PlayerType.PLAYER_EDEN or w.id == PlayerType.PLAYER_EDEN_B
+                    if not isEden or (isEden and edenTokens > 0) then
+                      if mod:getNumCompletionMarksToGo(w.id, v.id) > 0 then
+                        table.insert(tempDifficulties, v)
+                        break
+                      end
                     end
                   end
                 end
@@ -587,11 +599,14 @@ if REPENTOGON then
         local tempPlayerTypes = {}
         for _, v in ipairs(mod.playerTypes) do
           if v.enabled and ((playerTypes.regular and not v.tainted) or (playerTypes.tainted and v.tainted)) and mod:isPlayerTypeUnlocked(v.achievement) then
-            if not incomplete then
-              table.insert(tempPlayerTypes, v)
-            else
-              for i = 1, mod:getNumCompletionMarksToGo(v.id, d) do
-                table.insert(tempPlayerTypes, v) -- weighted
+            local isEden = v.id == PlayerType.PLAYER_EDEN or v.id == PlayerType.PLAYER_EDEN_B
+            if not isEden or (isEden and edenTokens > 0) then
+              if not incomplete then
+                table.insert(tempPlayerTypes, v)
+              else
+                for i = 1, mod:getNumCompletionMarksToGo(v.id, d) do
+                  table.insert(tempPlayerTypes, v) -- weighted
+                end
               end
             end
           end
@@ -619,9 +634,14 @@ if REPENTOGON then
         end
       end
       
+      if (p.id == PlayerType.PLAYER_EDEN or p.id == PlayerType.PLAYER_EDEN_B) and c.id == Challenge.CHALLENGE_NULL then
+        gameData:IncreaseEventCounter(EventCounter.EDEN_TOKENS, -1)
+      end
+      
       Isaac.StartNewGame(p.id, c.id, d, s)
       mod.controllerOverride = mod.controllersMap[controller + 1] or -1
       mod.notification = notification
+      mod.seed = s
       ImGui.Hide()
     end, false)
     
