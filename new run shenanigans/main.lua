@@ -158,30 +158,13 @@ if REPENTOGON then
     local i = PlayerType.NUM_PLAYER_TYPES -- 41, EntityConfig.GetMaxPlayerType()
     local playerConfig = EntityConfig.GetPlayer(i)
     while playerConfig do
-      if not playerConfig:IsHidden() and not playerConfig:IsTainted() and not mod:hasPlayerType(characters, playerConfig:GetPlayerType()) then
-        table.insert(characters, playerConfig)
-        
-        local taintedConfig = playerConfig:GetTaintedCounterpart()
-        if taintedConfig and not taintedConfig:IsHidden() and not mod:hasPlayerType(characters, taintedConfig:GetPlayerType()) then
-          table.insert(characters, taintedConfig)
-        end
-      end
+      table.insert(characters, playerConfig)
       
       i = i + 1
       playerConfig = EntityConfig.GetPlayer(i)
     end
     
     return characters
-  end
-  
-  function mod:hasPlayerType(characters, playerType)
-    for _, character in ipairs(characters) do
-      if character:GetPlayerType() == playerType then
-        return true
-      end
-    end
-    
-    return false
   end
   
   function mod:getPlayerAchievementID(playerConfig)
@@ -268,9 +251,7 @@ if REPENTOGON then
     local id = Challenge.NUM_CHALLENGES
     local entry = XMLData.GetEntryById(XMLNode.CHALLENGE, id)
     while entry and type(entry) == 'table' do
-      if entry.hidden == nil or entry.hidden == 'false' then
-        table.insert(challenges, entry)
-      end
+      table.insert(challenges, entry)
       
       id = id + 1
       entry = XMLData.GetEntryById(XMLNode.CHALLENGE, id)
@@ -317,26 +298,25 @@ if REPENTOGON then
       elseif i == PlayerType.PLAYER_JACOB then
         name = name .. '+' .. mod:localize('Players', '#ESAU_NAME')
       end
-      table.insert(mod.playerTypes, { id = i, name = name, tainted = i >= PlayerType.PLAYER_ISAAC_B, achievement = mod:getPlayerAchievementID(playerConfig), enabled = enabled })
+      table.insert(mod.playerTypes, { id = i, name = name, tainted = i >= PlayerType.PLAYER_ISAAC_B, achievement = mod:getPlayerAchievementID(playerConfig), enabled = enabled, defaultEnabled = enabled })
     end
     
-    -- excluding hidden characters
     for _, v in ipairs(mod:getModdedCharacters()) do
       local modName = nil
       local sourceid = mod:getXmlPlayerSourceId(v:GetPlayerType())
       if sourceid then
         modName = mod:getXmlModName(sourceid) or sourceid
       end
-      table.insert(mod.playerTypes, { id = v:GetPlayerType(), name = v:GetName(), tainted = v:IsTainted(), achievement = mod:getPlayerAchievementID(v), mod = modName, enabled = true })
+      table.insert(mod.playerTypes, { id = v:GetPlayerType(), name = v:GetName(), tainted = v:IsTainted(), achievement = mod:getPlayerAchievementID(v), mod = modName, enabled = not v:IsHidden(), defaultEnabled = not v:IsHidden() })
     end
   end
   
   -- community remix mod has a DifficultyManager
   function mod:fillDifficulties()
-    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_NORMAL  , name = 'Normal'  , enabled = true })
-    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_HARD    , name = 'Hard'    , enabled = true })
-    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_GREED   , name = 'Greed'   , enabled = true })
-    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_GREEDIER, name = 'Greedier', enabled = true })
+    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_NORMAL  , name = 'Normal'  , enabled = true, defaultEnabled = true })
+    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_HARD    , name = 'Hard'    , enabled = true, defaultEnabled = true })
+    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_GREED   , name = 'Greed'   , enabled = true, defaultEnabled = true })
+    table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_GREEDIER, name = 'Greedier', enabled = true, defaultEnabled = true })
   end
   
   function mod:fillChallenges()
@@ -355,10 +335,9 @@ if REPENTOGON then
       end
       local achievement = mod.challengeUnlocks[i]
       local achievements = achievement and { achievement } or {}
-      table.insert(mod.challenges, { id = i, name = data.name or '', playerType = playerType, difficulty = difficulty, achievements = achievements, enabled = true })
+      table.insert(mod.challenges, { id = i, name = data.name or '', playerType = playerType, difficulty = difficulty, achievements = achievements, enabled = true, defaultEnabled = true })
     end
     
-    -- excluding hidden challenges
     for _, v in ipairs(mod:getModdedChallenges()) do
       local playerType = tonumber(v.playertype)
       if math.type(playerType) ~= 'integer' then
@@ -369,7 +348,11 @@ if REPENTOGON then
         difficulty = Difficulty.DIFFICULTY_NORMAL
       end
       local modName = mod:getXmlModName(v.sourceid) or v.sourceid
-      table.insert(mod.challenges, { id = v.id, name = v.name or '', playerType = playerType, difficulty = difficulty, achievements = mod:xmlAchievementsToTbl(v.achievements), mod = modName, enabled = true })
+      local enabled = false
+      if v.hidden == nil or v.hidden == 'false' then
+        enabled = true
+      end
+      table.insert(mod.challenges, { id = v.id, name = v.name or '', playerType = playerType, difficulty = difficulty, achievements = mod:xmlAchievementsToTbl(v.achievements), mod = modName, enabled = enabled, defaultEnabled = enabled })
     end
   end
   
@@ -662,6 +645,13 @@ if REPENTOGON then
         for _, w in ipairs(v.tbl) do
           w.enabled = false
           ImGui.UpdateData(v.enabledPrefix .. w.id, ImGuiData.Value, false)
+        end
+      end, false)
+      ImGui.AddElement(v.tab, '', ImGuiElement.SameLine, '')
+      ImGui.AddButton(v.tab, 'shenanigansBtnNewRunReset' .. i, 'Reset', function()
+        for _, w in ipairs(v.tbl) do
+          w.enabled = w.defaultEnabled
+          ImGui.UpdateData(v.enabledPrefix .. w.id, ImGuiData.Value, w.defaultEnabled)
         end
       end, false)
     end
