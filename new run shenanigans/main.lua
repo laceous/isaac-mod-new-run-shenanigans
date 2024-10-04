@@ -311,7 +311,6 @@ if REPENTOGON then
     end
   end
   
-  -- community remix mod has a DifficultyManager
   function mod:fillDifficulties()
     table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_NORMAL  , name = 'Normal'  , enabled = true, defaultEnabled = true })
     table.insert(mod.difficulties, { id = Difficulty.DIFFICULTY_HARD    , name = 'Hard'    , enabled = true, defaultEnabled = true })
@@ -415,7 +414,7 @@ if REPENTOGON then
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Difficulty')
     ImGui.AddRadioButtons('shenanigansTabNewRun', 'shenanigansRadNewRunDifficulty', function(i)
       difficulty = i
-    end, { 'Normal', 'Hard', 'Greed', 'Greedier', 'Random', 'Challenge' }, difficulty, true)
+    end, { 'Normal', 'Hard', 'Greed', 'Greedier', 'Random', 'Menu', 'Challenge' }, difficulty, true)
     
     local playerTypes = {
       regular = true,
@@ -509,6 +508,14 @@ if REPENTOGON then
         ImGui.PushNotification('Select a save slot before starting a new run.', ImGuiNotificationType.ERROR, 5000)
         return
       end
+      if DifficultyManager and activeMenu <= MainMenuType.GAME then -- 3
+        ImGui.PushNotification('Select a more specific sub-menu when using the difficulty library.', ImGuiNotificationType.ERROR, 5000)
+        return
+      end
+      if DifficultyManager and activeMenu == MainMenuType.CHARACTER and difficulty ~= 5 then -- not menu
+        ImGui.PushNotification('"Menu" is the only valid option here when using the difficulty library.\nThe other options require navigating to a different sub-menu.', ImGuiNotificationType.ERROR, 5000)
+        return
+      end
       
       local gameData = Isaac.GetPersistentGameData()
       local rng = RNG(os.time(), mod.rngShiftIdx)
@@ -518,7 +525,7 @@ if REPENTOGON then
       local d = difficulty
       local notification = ''
       
-      if d == 5 then -- challenge
+      if d == 6 then -- challenge
         local tempChallenges = {}
         for _, v in ipairs(mod.challenges) do
           if v.enabled and mod:isChallengeUnlocked(v.achievements) then
@@ -577,6 +584,13 @@ if REPENTOGON then
           
           d = tempD.id
           notification = 'Difficulty: ' .. tempD.name .. '\n'
+        elseif d == 5 then -- menu
+          if activeMenu == MainMenuType.CHARACTER then -- 5
+            d = CharacterMenu.GetDifficulty()
+          else
+            ImGui.PushNotification('The "Menu" option must be used from the "New Run" menu.', ImGuiNotificationType.ERROR, 5000)
+            return
+          end
         end
         
         local tempPlayerTypes = {}

@@ -18,8 +18,18 @@ Note: Challenges have a set player type and difficulty assigned to them, and are
 
 Modded player types and challenges are supported. If they're hidden then they'll be deselected by default.
 
-When you press tilde to open the menu, the game may put you into keyboard mode. There's a controller option you can set if you're trying to play with a controller.</description>
-    <version>1.12</version>
+When you press tilde to open the menu, the game may put you into keyboard mode. There's a controller option you can set if you're trying to play with a controller.
+
+Experimental support for the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3148652146]Difficulty Library[/url] has been added. To use it:
+[olist]
+    [*]Navigate to the &quot;New Run&quot; menu
+    [*]Select your difficulty (e.g. Insane from the Community Remix mod)
+    [*]Open this mod's Shenanigans window and select &quot;Menu&quot; difficulty
+    [*]Click &quot;Start New Run&quot;
+[/olist]
+
+From the &quot;New Run&quot; menu, the Difficulty Library can override this mod's difficulty selection. In order to use any other option besides &quot;Menu&quot; you'll be required to navigate to a different sub-menu (e.g. Challenges).</description>
+    <version>1.13</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Player Characters"/>
