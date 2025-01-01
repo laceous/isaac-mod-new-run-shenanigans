@@ -79,7 +79,7 @@ if REPENTOGON then
     end
     
     if mod.notification then
-      ImGui.PushNotification(mod.notification, ImGuiNotificationType.INFO, 5000)
+      ImGui.PushNotification(mod.notification, ImGuiNotificationType.INFO, 10000)
       mod.notification = nil
     end
   end
@@ -243,6 +243,183 @@ if REPENTOGON then
     end
     
     return num
+  end
+  
+  function mod:hasIncompleteRandomPath(paths, playerType, difficulty)
+    local difficultyMod = difficulty + 1
+    
+    for _, v in ipairs(paths) do
+      if v == '#MOM' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.BOSS_RUSH) < difficultyMod then
+          return true
+        end
+      elseif v == '#MOMS_HEART' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.MOMS_HEART) < difficultyMod then
+          return true
+        end
+      elseif v == '#ISAAC' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.ISAAC) < difficultyMod then
+          return true
+        end
+      elseif v == '#SATAN' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.SATAN) < difficultyMod then
+          return true
+        end
+      elseif v == '#BLUEBABY' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.BLUE_BABY) < difficultyMod then
+          return true
+        end
+      elseif v == '#THE_LAMB' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.LAMB) < difficultyMod then
+          return true
+        end
+      elseif v == '#MEGA_SATAN' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.MEGA_SATAN) < difficultyMod then
+          return true
+        end
+      elseif v == '#HUSH' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.HUSH) < difficultyMod then
+          return true
+        end
+      elseif v == '#DELIRIUM' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.DELIRIUM) < difficultyMod then
+          return true
+        end
+      elseif v == '#MOTHER' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.MOTHER) < difficultyMod then
+          return true
+        end
+      elseif v == '#THE_BEAST' then
+        if Isaac.GetCompletionMark(playerType, CompletionType.BEAST) < difficultyMod then
+          return true
+        end
+      end
+    end
+    
+    return false
+  end
+  
+  function mod:getRandomPath(rng, pastMother, incomplete, playerType, difficulty)
+    local gameData = Isaac.GetPersistentGameData()
+    local paths = nil
+    local loop = 0
+    
+    while paths == nil or (incomplete and loop < 60 and not mod:hasIncompleteRandomPath(paths, playerType, difficulty)) do
+      paths = { '#MOM' }
+      loop = loop + 1
+      
+      local nextPaths = {}
+      if gameData:Unlocked(Achievement.WOMB) then
+        table.insert(nextPaths, '#MOMS_HEART') -- isaac
+        table.insert(nextPaths, '#MOMS_HEART') -- satan
+        table.insert(nextPaths, '#MOMS_HEART') -- hush
+      end
+      if gameData:Unlocked(Achievement.SECRET_EXIT) then
+        table.insert(nextPaths, '#MOTHER')
+        if pastMother then
+          table.insert(nextPaths, '#MOTHER')
+          table.insert(nextPaths, '#MOTHER')
+        end
+      end
+      if gameData:Unlocked(Achievement.A_STRANGE_DOOR) then
+        table.insert(nextPaths, '#THE_BEAST')
+      end
+      if #nextPaths > 0 then
+        table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
+      end
+      
+      nextPaths = {}
+      if paths[#paths] == '#MOMS_HEART' then
+        if gameData:Unlocked(Achievement.IT_LIVES) then
+          table.insert(nextPaths, '#ISAAC')
+          table.insert(nextPaths, '#SATAN')
+        end
+        if gameData:Unlocked(Achievement.BLUE_WOMB) then
+          table.insert(nextPaths, '#HUSH')
+        end
+        if #nextPaths > 0 then
+          table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
+        end
+      end
+      
+      nextPaths = {}
+      if paths[#paths] == '#MOTHER' then
+        if pastMother then
+          if gameData:Unlocked(Achievement.IT_LIVES) then
+            table.insert(nextPaths, '#ISAAC')
+            table.insert(nextPaths, '#SATAN')
+          end
+          if gameData:Unlocked(Achievement.BLUE_WOMB) then
+            table.insert(nextPaths, '#HUSH')
+          end
+        end
+        if REPENTANCE_PLUS and gameData:Unlocked(Achievement.THE_VOID) and gameData:GetEventCounter(EventCounter.MOTHER_KILLS) > 0 then
+          if rng:RandomFloat() < 0.5 then
+            table.insert(nextPaths, '#DELIRIUM')
+          end
+        end
+        if #nextPaths > 0 then
+          table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
+        end
+      end
+      
+      nextPaths = {}
+      if paths[#paths] == '#HUSH' then
+        if gameData:GetEventCounter(EventCounter.HUSH_KILLS) > 0 then -- IT_LIVES
+          table.insert(nextPaths, '#ISAAC')
+          table.insert(nextPaths, '#SATAN')
+        end
+        if gameData:Unlocked(Achievement.THE_VOID) then
+          table.insert(nextPaths, '#DELIRIUM')
+        end
+        if #nextPaths > 0 then
+          table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
+        end
+      end
+      
+      nextPaths = {}
+      if paths[#paths] == '#ISAAC' then
+        if gameData:Unlocked(Achievement.THE_POLAROID) then
+          table.insert(nextPaths, '#BLUEBABY')
+          if gameData:Unlocked(Achievement.ANGELS) then
+            table.insert(nextPaths, '#MEGA_SATAN')
+          end
+        end
+        if #nextPaths > 0 then
+          table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
+        end
+      end
+      
+      nextPaths = {}
+      if paths[#paths] == '#SATAN' then
+        if gameData:Unlocked(Achievement.THE_NEGATIVE) then
+          table.insert(nextPaths, '#THE_LAMB')
+          if gameData:Unlocked(Achievement.ANGELS) then
+            table.insert(nextPaths, '#MEGA_SATAN')
+          end
+        end
+        if #nextPaths > 0 then
+          table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
+        end
+      end
+      
+      if paths[#paths] == '#BLUEBABY' or
+         paths[#paths] == '#THE_LAMB' or
+         paths[#paths] == '#MEGA_SATAN'
+      then
+        if gameData:Unlocked(Achievement.THE_VOID) then
+          if rng:RandomFloat() < 0.5 then
+            table.insert(paths, '#DELIRIUM')
+          end
+        end
+      end
+    end
+    
+    for i, v in ipairs(paths) do
+      paths[i] = mod:localize('Entities', v)
+    end
+    
+    return table.concat(paths, ' -> ')
   end
   
   function mod:getModdedChallenges()
@@ -435,10 +612,21 @@ if REPENTOGON then
     end
     
     local incomplete = false
+    local randomPath = false
+    local randomPathPastMother = false
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Optional')
     ImGui.AddCheckbox('shenanigansTabNewRun', 'shenanigansChkNewRunIncomplete', 'Limit to completion marks or challenges that are incomplete?', function(b)
       incomplete = b
     end, incomplete)
+    ImGui.AddCheckbox('shenanigansTabNewRun', 'shenanigansChkNewRunPath', 'Choose and display a random recommended path?', function(b)
+      randomPath = b
+    end, randomPath)
+    ImGui.SetHelpmarker('shenanigansChkNewRunPath', 'Normal/Hard')
+    ImGui.AddElement('shenanigansTabNewRun', 'shenanigansTreeNodeNewRunPathOptions', ImGuiElement.TreeNode, 'Options')
+    ImGui.AddCheckbox('shenanigansTreeNodeNewRunPathOptions', 'shenanigansChkNewRunPathPastMother', 'Include paths past Mother?', function(b)
+      randomPathPastMother = b
+    end, randomPathPastMother)
+    ImGui.SetHelpmarker('shenanigansChkNewRunPathPastMother', 'Requires mod support')
     
     local seed = ''
     local txtSeedId = 'shenanigansTxtNewRunSeed'
@@ -615,7 +803,7 @@ if REPENTOGON then
           return
         end
         
-        notification = notification .. 'Player Type: ' .. p.name
+        notification = notification .. 'Player type: ' .. p.name
         if p.tainted then
           notification = notification .. ' (Tainted)'
         end
@@ -635,12 +823,21 @@ if REPENTOGON then
         gameData:IncreaseEventCounter(EventCounter.EDEN_TOKENS, -1)
       end
       
+      if randomPath and (d == Difficulty.DIFFICULTY_NORMAL or d == Difficulty.DIFFICULTY_HARD) and c.id == Challenge.CHALLENGE_NULL then
+        local path = 'Recommended path: ' .. mod:getRandomPath(rng, randomPathPastMother, incomplete, p.id, d)
+        ImGui.UpdateText('shenanigansTxtNewRunPath', path)
+        notification = notification .. '\n' .. path
+      else
+        ImGui.UpdateText('shenanigansTxtNewRunPath', '')
+      end
+      
       Isaac.StartNewGame(p.id, c.id, d, s)
       mod.controllerOverride = mod.controllersMap[controller + 1] or -1
       mod.notification = notification
       mod.seed = s
       ImGui.Hide()
     end, false)
+    ImGui.AddText('shenanigansTabNewRun', '', true, 'shenanigansTxtNewRunPath')
     
     for i, v in ipairs({
                         { tab = 'shenanigansTabNewRunPlayerTypes' , tbl = mod.playerTypes , enabledPrefix = 'shenanigansChkNewRunPlayerTypeEnabled' },
