@@ -329,10 +329,10 @@ if REPENTOGON then
         table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
       end
       
-      nextPaths = {}
       if paths[#paths] == '#MOMS_HEART' or
          paths[#paths] == '#IT_LIVES'
       then
+        nextPaths = {}
         if gameData:Unlocked(Achievement.IT_LIVES) then
           table.insert(nextPaths, '#ISAAC')
           table.insert(nextPaths, '#SATAN')
@@ -345,8 +345,8 @@ if REPENTOGON then
         end
       end
       
-      nextPaths = {}
       if paths[#paths] == '#MOTHER' then
+        nextPaths = {}
         if pastMother then
           if gameData:Unlocked(Achievement.IT_LIVES) then
             table.insert(nextPaths, '#ISAAC')
@@ -366,8 +366,8 @@ if REPENTOGON then
         end
       end
       
-      nextPaths = {}
       if paths[#paths] == '#HUSH' then
+        nextPaths = {}
         if gameData:GetEventCounter(EventCounter.HUSH_KILLS) > 0 then -- IT_LIVES
           table.insert(nextPaths, '#ISAAC')
           table.insert(nextPaths, '#SATAN')
@@ -380,8 +380,8 @@ if REPENTOGON then
         end
       end
       
-      nextPaths = {}
       if paths[#paths] == '#ISAAC' then
+        nextPaths = {}
         if gameData:Unlocked(Achievement.THE_POLAROID) then
           table.insert(nextPaths, '#BLUEBABY')
           if gameData:Unlocked(Achievement.ANGELS) then
@@ -393,8 +393,8 @@ if REPENTOGON then
         end
       end
       
-      nextPaths = {}
       if paths[#paths] == '#SATAN' then
+        nextPaths = {}
         if gameData:Unlocked(Achievement.THE_NEGATIVE) then
           table.insert(nextPaths, '#THE_LAMB')
           if gameData:Unlocked(Achievement.ANGELS) then
@@ -621,14 +621,15 @@ if REPENTOGON then
     local incomplete = false
     local randomPath = false
     local randomPathPastMother = false
+    local chkPathId = 'shenanigansChkNewRunPath'
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Optional')
     ImGui.AddCheckbox('shenanigansTabNewRun', 'shenanigansChkNewRunIncomplete', 'Limit to completion marks or challenges that are incomplete?', function(b)
       incomplete = b
     end, incomplete)
-    ImGui.AddCheckbox('shenanigansTabNewRun', 'shenanigansChkNewRunPath', 'Choose and display a random recommended path?', function(b)
+    ImGui.AddCheckbox('shenanigansTabNewRun', chkPathId, 'Choose and display a random recommended path?', function(b)
       randomPath = b
     end, randomPath)
-    ImGui.SetHelpmarker('shenanigansChkNewRunPath', 'Normal/Hard')
+    ImGui.SetHelpmarker(chkPathId, 'Normal/Hard')
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SameLine, '')
     ImGui.AddButton('shenanigansTabNewRun', 'shenanigansBtnNewRunPath', '\u{f021}', function()
       if randomPath then
