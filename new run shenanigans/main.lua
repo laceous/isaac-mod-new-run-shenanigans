@@ -289,7 +289,7 @@ if REPENTOGON then
         if Isaac.GetCompletionMark(playerType, CompletionType.MOTHER) < difficultyMod then
           return true
         end
-      elseif v == '#THE_BEAST' then
+      elseif v == '#DOGMA' or v == '#THE_BEAST' then
         if Isaac.GetCompletionMark(playerType, CompletionType.BEAST) < difficultyMod then
           return true
         end
@@ -322,7 +322,7 @@ if REPENTOGON then
         end
       end
       if gameData:Unlocked(Achievement.A_STRANGE_DOOR) then
-        table.insert(nextPaths, '#THE_BEAST')
+        table.insert(nextPaths, '#DOGMA')
       end
       if #nextPaths > 0 then
         table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
@@ -401,6 +401,10 @@ if REPENTOGON then
         if #nextPaths > 0 then
           table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
         end
+      end
+      
+      if paths[#paths] == '#DOGMA' then
+        table.insert(paths, '#THE_BEAST')
       end
       
       if paths[#paths] == '#BLUEBABY' or
