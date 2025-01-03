@@ -253,7 +253,7 @@ if REPENTOGON then
         if Isaac.GetCompletionMark(playerType, CompletionType.BOSS_RUSH) < difficultyMod then
           return true
         end
-      elseif v == '#MOMS_HEART' then
+      elseif v == '#MOMS_HEART' or v == '#IT_LIVES' then
         if Isaac.GetCompletionMark(playerType, CompletionType.MOMS_HEART) < difficultyMod then
           return true
         end
@@ -310,9 +310,10 @@ if REPENTOGON then
       
       local nextPaths = {}
       if gameData:Unlocked(Achievement.WOMB) then
-        table.insert(nextPaths, '#MOMS_HEART') -- isaac
-        table.insert(nextPaths, '#MOMS_HEART') -- satan
-        table.insert(nextPaths, '#MOMS_HEART') -- hush
+        local momsHeart = gameData:Unlocked(Achievement.IT_LIVES) and '#IT_LIVES' or '#MOMS_HEART'
+        table.insert(nextPaths, momsHeart) -- isaac
+        table.insert(nextPaths, momsHeart) -- satan
+        table.insert(nextPaths, momsHeart) -- hush
       end
       if gameData:Unlocked(Achievement.SECRET_EXIT) then
         table.insert(nextPaths, '#MOTHER')
@@ -329,7 +330,9 @@ if REPENTOGON then
       end
       
       nextPaths = {}
-      if paths[#paths] == '#MOMS_HEART' then
+      if paths[#paths] == '#MOMS_HEART' or
+         paths[#paths] == '#IT_LIVES'
+      then
         if gameData:Unlocked(Achievement.IT_LIVES) then
           table.insert(nextPaths, '#ISAAC')
           table.insert(nextPaths, '#SATAN')
