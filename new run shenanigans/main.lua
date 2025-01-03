@@ -626,6 +626,17 @@ if REPENTOGON then
       randomPath = b
     end, randomPath)
     ImGui.SetHelpmarker('shenanigansChkNewRunPath', 'Normal/Hard')
+    ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SameLine, '')
+    ImGui.AddButton('shenanigansTabNewRun', 'shenanigansBtnNewRunPath', '\u{f021}', function()
+      if randomPath then
+        local rand = Random()
+        local rng = RNG(rand <= 0 and 1 or rand, mod.rngShiftIdx)
+        local path = 'Recommended path: ' .. mod:getRandomPath(rng, randomPathPastMother, false, nil, nil)
+        ImGui.UpdateText('shenanigansTxtNewRunPath', path)
+      else
+        ImGui.UpdateText('shenanigansTxtNewRunPath', '')
+      end
+    end, false)
     ImGui.AddElement('shenanigansTabNewRun', 'shenanigansTreeNodeNewRunPathOptions', ImGuiElement.TreeNode, 'Options')
     ImGui.AddCheckbox('shenanigansTreeNodeNewRunPathOptions', 'shenanigansChkNewRunPathPastMother', 'Include paths past Mother?', function(b)
       randomPathPastMother = b
@@ -709,8 +720,9 @@ if REPENTOGON then
         return
       end
       
+      local rand = Random()
+      local rng = RNG(rand <= 0 and 1 or rand, mod.rngShiftIdx) -- os.time
       local gameData = Isaac.GetPersistentGameData()
-      local rng = RNG(os.time(), mod.rngShiftIdx)
       
       local p = {}
       local c = { id = Challenge.CHALLENGE_NULL }
