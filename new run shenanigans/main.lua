@@ -635,7 +635,15 @@ if REPENTOGON then
       if randomPath then
         local rand = Random()
         local rng = RNG(rand <= 0 and 1 or rand, mod.rngShiftIdx)
-        local path = 'Recommended path: ' .. mod:getRandomPath(rng, randomPathPastMother, false, nil, nil)
+        local i = false
+        local p = nil
+        local d = nil
+        if Isaac.IsInGame() and not game:IsGreedMode() then
+          i = incomplete
+          p = game:GetPlayer(0):GetPlayerType()
+          d = game.Difficulty
+        end
+        local path = 'Recommended path: ' .. mod:getRandomPath(rng, randomPathPastMother, i, p, d)
         ImGui.UpdateText('shenanigansTxtNewRunPath', path)
       else
         ImGui.UpdateText('shenanigansTxtNewRunPath', '')
