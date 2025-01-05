@@ -622,6 +622,7 @@ if REPENTOGON then
     local randomPath = false
     local randomPathPastMother = false
     local chkPathId = 'shenanigansChkNewRunPath'
+    local chkPathPastMotherId = 'shenanigansChkNewRunPathPastMother'
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Optional')
     ImGui.AddCheckbox('shenanigansTabNewRun', 'shenanigansChkNewRunIncomplete', 'Limit to completion marks or challenges that are incomplete?', function(b)
       incomplete = b
@@ -650,10 +651,10 @@ if REPENTOGON then
       end
     end, false)
     ImGui.AddElement('shenanigansTabNewRun', 'shenanigansTreeNodeNewRunPathOptions', ImGuiElement.TreeNode, 'Options')
-    ImGui.AddCheckbox('shenanigansTreeNodeNewRunPathOptions', 'shenanigansChkNewRunPathPastMother', 'Include paths past Mother?', function(b)
+    ImGui.AddCheckbox('shenanigansTreeNodeNewRunPathOptions', chkPathPastMotherId, 'Include paths past Mother?', function(b)
       randomPathPastMother = b
     end, randomPathPastMother)
-    ImGui.SetHelpmarker('shenanigansChkNewRunPathPastMother', 'Requires mod support')
+    ImGui.SetHelpmarker(chkPathPastMotherId, 'Requires mod support')
     
     local seed = ''
     local txtSeedId = 'shenanigansTxtNewRunSeed'
