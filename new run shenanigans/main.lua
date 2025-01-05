@@ -644,7 +644,7 @@ if REPENTOGON then
         local i = false
         local p = nil
         local d = nil
-        if Isaac.IsInGame() and not game:IsGreedMode() then
+        if Isaac.IsInGame() and not game:IsGreedMode() and Isaac.GetChallenge() == Challenge.CHALLENGE_NULL then
           i = incomplete
           p = game:GetPlayer(0):GetPlayerType()
           d = game.Difficulty
