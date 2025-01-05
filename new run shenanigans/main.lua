@@ -289,7 +289,7 @@ if REPENTOGON then
         if Isaac.GetCompletionMark(playerType, CompletionType.MOTHER) < difficultyMod then
           return true
         end
-      elseif v == '#DOGMA' or v == '#THE_BEAST' then
+      elseif v == '#THE_BEAST' then
         if Isaac.GetCompletionMark(playerType, CompletionType.BEAST) < difficultyMod then
           return true
         end
@@ -323,7 +323,7 @@ if REPENTOGON then
         end
       end
       if gameData:Unlocked(Achievement.A_STRANGE_DOOR) then
-        table.insert(nextPaths, '#DOGMA')
+        table.insert(nextPaths, '#DADS_NOTE_NAME')
       end
       if #nextPaths > 0 then
         table.insert(paths, nextPaths[rng:RandomInt(#nextPaths) + 1])
@@ -406,7 +406,8 @@ if REPENTOGON then
         end
       end
       
-      if paths[#paths] == '#DOGMA' then
+      if paths[#paths] == '#DADS_NOTE_NAME' then
+        table.insert(paths, '#DOGMA')
         table.insert(paths, '#THE_BEAST')
       end
       
@@ -423,7 +424,11 @@ if REPENTOGON then
     end
     
     for i, v in ipairs(paths) do
-      paths[i] = mod:localize('Entities', v)
+      if v == '#DADS_NOTE_NAME' then
+        paths[i] = mod:localize('Items', v)
+      else
+        paths[i] = mod:localize('Entities', v)
+      end
     end
     
     return table.concat(paths, ' -> ')

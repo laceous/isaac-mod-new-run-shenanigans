@@ -31,7 +31,7 @@ Experimental support for the [url=https://steamcommunity.com/sharedfiles/filedet
 From the &quot;New Run&quot; menu, the Difficulty Library can override this mod's difficulty selection. In order to use any other option besides &quot;Menu&quot; you'll be required to navigate to a different sub-menu (e.g. Challenges).
 
 Update: There's a new option to choose a random recommended path for your run (in normal/hard mode). This path isn't forced. If you want forced paths then you can check out my [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2765647569]Randomness Challenge[/url] mod. In Rep, the option to go to Delirium involves RNG. In Rep+, the Delirium paths should always be available. The path will be displayed in the notification and in the Shenanigans window.</description>
-    <version>1.20</version>
+    <version>1.21</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Player Characters"/>
