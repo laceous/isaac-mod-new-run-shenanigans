@@ -311,15 +311,23 @@ if REPENTOGON then
       local nextPaths = {}
       if gameData:Unlocked(Achievement.WOMB) then
         local momsHeart = gameData:Unlocked(Achievement.IT_LIVES) and '#IT_LIVES' or '#MOMS_HEART'
-        table.insert(nextPaths, momsHeart) -- isaac
-        table.insert(nextPaths, momsHeart) -- satan
-        table.insert(nextPaths, momsHeart) -- hush
+        table.insert(nextPaths, momsHeart)
+        if gameData:Unlocked(Achievement.IT_LIVES) then
+          table.insert(nextPaths, momsHeart)
+        end
+        if gameData:Unlocked(Achievement.BLUE_WOMB) then
+          table.insert(nextPaths, momsHeart)
+        end
       end
       if gameData:Unlocked(Achievement.SECRET_EXIT) then
         table.insert(nextPaths, '#MOTHER')
         if pastMother then
-          table.insert(nextPaths, '#MOTHER')
-          table.insert(nextPaths, '#MOTHER')
+          if gameData:Unlocked(Achievement.IT_LIVES) then
+            table.insert(nextPaths, '#MOTHER')
+          end
+          if gameData:Unlocked(Achievement.BLUE_WOMB) then
+            table.insert(nextPaths, '#MOTHER')
+          end
         end
       end
       if gameData:Unlocked(Achievement.A_STRANGE_DOOR) then
