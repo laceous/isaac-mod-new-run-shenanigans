@@ -634,8 +634,12 @@ if REPENTOGON then
     local incomplete = false
     local randomPath = false
     local randomPathPastMother = false
+    local path = ''
     local chkPathId = 'shenanigansChkNewRunPath'
     local chkPathPastMotherId = 'shenanigansChkNewRunPathPastMother'
+    local btnPathRefreshId = 'shenanigansBtnNewRunPathRefresh'
+    local btnPathCopyId = 'shenanigansBtnNewRunPathCopy'
+    local txtPathId = 'shenanigansTxtNewRunPath'
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SeparatorText, 'Optional')
     ImGui.AddCheckbox('shenanigansTabNewRun', 'shenanigansChkNewRunIncomplete', 'Limit to completion marks or challenges that are incomplete?', function(b)
       incomplete = b
@@ -645,7 +649,7 @@ if REPENTOGON then
     end, randomPath)
     ImGui.SetHelpmarker(chkPathId, 'Normal/Hard')
     ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SameLine, '')
-    ImGui.AddButton('shenanigansTabNewRun', 'shenanigansBtnNewRunPath', '\u{f021}', function()
+    ImGui.AddButton('shenanigansTabNewRun', btnPathRefreshId, '\u{f021}', function()
       if randomPath then
         local rand = Random()
         local rng = RNG(rand <= 0 and 1 or rand, mod.rngShiftIdx)
@@ -657,12 +661,23 @@ if REPENTOGON then
           p = game:GetPlayer(0):GetPlayerType()
           d = game.Difficulty
         end
-        local path = 'Recommended path: ' .. mod:getRandomPath(rng, randomPathPastMother, i, p, d)
-        ImGui.UpdateText('shenanigansTxtNewRunPath', path)
+        path = 'Recommended path: ' .. mod:getRandomPath(rng, randomPathPastMother, i, p, d)
+        ImGui.UpdateText(txtPathId, path)
       else
-        ImGui.UpdateText('shenanigansTxtNewRunPath', '')
+        path = ''
+        ImGui.UpdateText(txtPathId, path)
       end
     end, false)
+    ImGui.SetTooltip(btnPathRefreshId, 'Refresh (if enabled)')
+    ImGui.AddElement('shenanigansTabNewRun', '', ImGuiElement.SameLine, '')
+    ImGui.AddButton('shenanigansTabNewRun', btnPathCopyId, '\u{f0c5}', function()
+      if path and path ~= '' then
+        if Isaac.SetClipboard(path) then
+          ImGui.PushNotification('Copied path to clipboard', ImGuiNotificationType.INFO, 5000)
+        end
+      end
+    end, false)
+    ImGui.SetTooltip(btnPathCopyId, 'Copy (if path chosen)')
     ImGui.AddElement('shenanigansTabNewRun', 'shenanigansTreeNodeNewRunPathOptions', ImGuiElement.TreeNode, 'Options')
     ImGui.AddCheckbox('shenanigansTreeNodeNewRunPathOptions', chkPathPastMotherId, 'Include paths past Mother?', function(b)
       randomPathPastMother = b
@@ -866,11 +881,11 @@ if REPENTOGON then
       end
       
       if randomPath and (d == Difficulty.DIFFICULTY_NORMAL or d == Difficulty.DIFFICULTY_HARD) and c.id == Challenge.CHALLENGE_NULL then
-        local path = 'Recommended path: ' .. mod:getRandomPath(rng, randomPathPastMother, incomplete, p.id, d)
-        ImGui.UpdateText('shenanigansTxtNewRunPath', path)
+        path = 'Recommended path: ' .. mod:getRandomPath(rng, randomPathPastMother, incomplete, p.id, d)
+        ImGui.UpdateText(txtPathId, path)
         notification = notification .. '\n' .. path
       else
-        ImGui.UpdateText('shenanigansTxtNewRunPath', '')
+        ImGui.UpdateText(txtPathId, '')
       end
       
       Isaac.StartNewGame(p.id, c.id, d, s)
@@ -879,7 +894,7 @@ if REPENTOGON then
       mod.seed = s
       ImGui.Hide()
     end, false)
-    ImGui.AddText('shenanigansTabNewRun', '', true, 'shenanigansTxtNewRunPath')
+    ImGui.AddText('shenanigansTabNewRun', '', true, txtPathId)
     
     for i, v in ipairs({
                         { tab = 'shenanigansTabNewRunPlayerTypes' , tbl = mod.playerTypes , enabledPrefix = 'shenanigansChkNewRunPlayerTypeEnabled' },
