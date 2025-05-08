@@ -49,9 +49,7 @@ if REPENTOGON then
     [Challenge.CHALLENGE_DELETE_THIS]         = Achievement.CHALLENGE_45_DELETE_THIS,
   }
   
-  function mod:onRender()
-    mod:RemoveCallback(ModCallbacks.MC_MAIN_MENU_RENDER, mod.onRender)
-    mod:RemoveCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
+  function mod:onModsLoaded()
     mod:fillPlayerTypes()
     mod:fillDifficulties()
     mod:fillChallenges()
@@ -593,10 +591,13 @@ if REPENTOGON then
     return true
   end
   
-  function mod:setupImGui()
+  function mod:setupImGuiMenu()
     if not ImGui.ElementExists('shenanigansMenu') then
       ImGui.CreateMenu('shenanigansMenu', '\u{f6d1} Shenanigans')
     end
+  end
+  
+  function mod:setupImGui()
     ImGui.AddElement('shenanigansMenu', 'shenanigansMenuItemNewRun', ImGuiElement.MenuItem, '\u{f70c} New Run Shenanigans')
     ImGui.CreateWindow('shenanigansWindowNewRun', 'New Run Shenanigans')
     ImGui.LinkWindowToElement('shenanigansWindowNewRun', 'shenanigansMenuItemNewRun')
@@ -969,8 +970,8 @@ if REPENTOGON then
     end
   end
   
-  mod:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, mod.onRender)
-  mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
+  mod:setupImGuiMenu()
+  mod:AddCallback(ModCallbacks.MC_POST_MODS_LOADED, mod.onModsLoaded)
   mod:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, mod.onMainMenuRender)
   mod:AddPriorityCallback(ModCallbacks.MC_POST_PLAYER_INIT, CallbackPriority.IMPORTANT, mod.onPlayerInit, PlayerVariant.PLAYER)
 end
