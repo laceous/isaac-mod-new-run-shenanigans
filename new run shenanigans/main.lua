@@ -185,7 +185,7 @@ if REPENTOGON then
       local achievement = mod:getXmlPlayerAchievement(playerConfig:GetPlayerType())
       if achievement then
         local tempAchievementId = tonumber(mod:getXmlAchievementId(achievement))
-        if math.type(tempAchievementId) == 'integer' then
+        if math.type(tempAchievementId) == 'integer' and tempAchievementId > 0 then
           achievementId = tempAchievementId
         end
       end
