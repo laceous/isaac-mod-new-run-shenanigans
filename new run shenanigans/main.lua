@@ -891,10 +891,15 @@ if REPENTOGON then
         ImGui.UpdateText(txtPathId, '')
       end
       
-      Isaac.StartNewGame(p.id, c.id, d, s)
+      if REPENTANCE_PLUS and REPENTOGON.MeetsVersion('1.1.2') then
+        Isaac.StartNewGame(p.id, c.id, d, s, s ~= nil)
+        mod.seed = nil
+      else
+        Isaac.StartNewGame(p.id, c.id, d, s)
+        mod.seed = s
+      end
       mod.controllerOverride = mod.controllersMap[controller + 1] or -1
       mod.notification = notification
-      mod.seed = s
       ImGui.Hide()
     end, false)
     ImGui.AddText('shenanigansTabNewRun', '', true, txtPathId)
