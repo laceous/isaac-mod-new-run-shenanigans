@@ -591,6 +591,21 @@ if REPENTOGON then
     return true
   end
   
+  function mod:getMenuSeedEffects()
+    local seedEffects = {}
+    
+    if MenuManager.GetSeeds then
+      local seeds = MenuManager.GetSeeds()
+      for i = 1, SeedEffect.NUM_SEEDS - 1 do -- 0 is SEED_NORMAL
+        if seeds:HasSeedEffect(i) then
+          table.insert(seedEffects, i)
+        end
+      end
+    end
+    
+    return seedEffects
+  end
+  
   function mod:setupImGuiMenu()
     if not ImGui.ElementExists('shenanigansMenu') then
       ImGui.CreateMenu('shenanigansMenu', '\u{f6d1} Shenanigans')
@@ -891,12 +906,26 @@ if REPENTOGON then
         ImGui.UpdateText(txtPathId, '')
       end
       
-      if REPENTANCE_PLUS and REPENTOGON.MeetsVersion('1.1.2') then
-        Isaac.StartNewGame(p.id, c.id, d, s, s ~= nil)
+      local seedEffects = mod:getMenuSeedEffects()
+      if REPENTANCE_PLUS and c.id == Challenge.CHALLENGE_NULL and #seedEffects > 0 then -- 1.1.3
+        local seeds = MenuManager.GetSeeds()
+        -- reset menu's IsCustomRun (includes seed + seed effects)
+        -- set our seed
+        -- re-add seed effects
+        -- lock in IsCustomRun via debug command
+        seeds:Reset()
+        seeds:SetStartSeed(s == nil and '' or Seeds.Seed2String(s))
+        for _, v in ipairs(seedEffects) do
+          seeds:AddSeedEffect(v)
+        end
+        Isaac.StartNewGame(p.id, c.id, d, seeds)
+        mod.seed = s
+      elseif REPENTANCE_PLUS and REPENTOGON.MeetsVersion('1.1.2') then
+        Isaac.StartNewGame(p.id, c.id, d, s, s ~= nil) -- IsCustomRun can be set from here
         mod.seed = nil
       else
         Isaac.StartNewGame(p.id, c.id, d, s)
-        mod.seed = s
+        mod.seed = s -- lock in IsCustomRun via debug command
       end
       mod.controllerOverride = mod.controllersMap[controller + 1] or -1
       mod.notification = notification
